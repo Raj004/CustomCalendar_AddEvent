@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">CalendarWithEvents_Sql</string>
+
+
+        <string name="lbl_new_event">New Event..</string>
+        <string name="msg_no_notes">No events..</string>
+        <string name="edit_note_title">New event title</string>
+        <string name="title_activity_next">NextActivity</string>
+        <string name="lbl_new_note_title">Add event..</string>
+    <string name="lbl_edit_note_title">New event add..</string>
+</resources>
+
