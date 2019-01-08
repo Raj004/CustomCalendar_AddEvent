@@ -3,6 +3,7 @@ package com.example.rajshekhar.calendarwithevents_sql;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Dialog;
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -31,6 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.rajshekhar.calendarwithevents_sql.database.Event;
+import com.example.rajshekhar.calendarwithevents_sql.database.EventDB;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,14 +65,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView recyclerView;
     private ArrayList<Event>eventList;
     private MyAdapter my_adapter;
+    private static final String DATABASE_NAME="db_event";
+    private EventDB database;
+    private List<Event>eventList1= new ArrayList<>();
+//    private static final String DATABASE_NAME = "db_employee";
+//    private EmployeeDB database;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        database = Room.databaseBuilder(getApplicationContext(), EventDB.class, DATABASE_NAME).allowMainThreadQueries().build();
+
+
         eventList=new ArrayList<>();
         recyclerView=(RecyclerView)findViewById(R.id.recycler_view);
+
+        eventList1=database.eventDao().getAllEvents();
+        Log.e("Tiwari 00988",database.eventDao().getAllEvents().toString());
+
         //notesList.addAll(db.getAllNotes());
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
@@ -90,6 +104,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onLongClick(View view, int position) {
+                        //new0w90ww90w9
+                        Event event1=eventList1.get(position);
+//                        Toast.makeText(view.getContext(),"Date:"+Integer.toString(position)+event1.getDate()+"",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(view.getContext(),"Name:"+Integer.toString(position)+event1.getName()+"",Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(view.getContext(),"Id:"+Integer.toString(position)+event1.getId()+"",Toast.LENGTH_SHORT).show();
+
+
+                        final Dialog dialog = new Dialog(MainActivity.this);
+                        dialog.setContentView(R.layout.dialog_update);
+                        dialog.setTitle("Update List friend");
+                        dialog.setCancelable(false);
+                        EditText name =(EditText)dialog.findViewById(R.id.name);
+                        name.setText(event1.getName());
+
+                        View btnAdd =dialog.findViewById(R.id.btn_ok);
+                        View btnCancel = dialog.findViewById(R.id.btn_cancel);
+
+                        btnAdd.setOnClickListener(onConfirmListenerUpadte(name, dialog,position));
+                        btnCancel.setOnClickListener(onCancelListener(dialog));
+
+                        dialog.show();
 
                     }
 
@@ -128,14 +163,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-        my_adapter = new MyAdapter(this, eventList, new RemoveClickListner() {
+        my_adapter = new MyAdapter(this, eventList1,database, new RemoveClickListner() {
             @Override
             public void OnRemoveClick(int index) {
-                eventList.remove(index);
+                eventList1.remove(index);
                 my_adapter.notifyDataSetChanged();
             }
         });
         recyclerView.setAdapter(my_adapter);
+
 
     }
 
@@ -150,6 +186,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
     }
+
+    private View.OnClickListener onConfirmListenerUpadte(final EditText name, final Dialog dialog, final int position) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Event event1=eventList1.get(position);
+               // Toast.makeText(view.getContext(),"Date007:"+Integer.toString(position)+event1.getDate()+"",Toast.LENGTH_SHORT).show();
+               // Toast.makeText(view.getContext(),"Name007:"+Integer.toString(position)+event1.getName()+"",Toast.LENGTH_SHORT).show();
+               // Toast.makeText(view.getContext(),"Id007:"+Integer.toString(position)+event1.getId()+"",Toast.LENGTH_SHORT).show();
+                event1.setName(name.getText().toString().trim());
+               // event1.setDate(event1+"");
+
+                if(name.getText().toString().matches("")){
+                    Toast.makeText(view.getContext(), "Enter your name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                eventList.add(event1);
+                updateEvent(event1);
+                my_adapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+        };
+    }
+
     private View.OnClickListener onConfirmListener(final EditText name, final Dialog dialog){
         return new View.OnClickListener() {
 
@@ -160,17 +220,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 friend.setDate(date_month_year.toString());
                 Log.e("DATE1111111",date_month_year.toString());
 
-
-
-
-
                 if(name.getText().toString().matches("")){
                     Toast.makeText(v.getContext(), "Enter your name", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                eventList.add(friend);
-
+                eventList1.add(friend);
+                insertEvent(friend);
 
 
                 my_adapter.notifyDataSetChanged();
@@ -180,6 +236,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         };
     }
 
+    private void updateEvent(Event event1) {
+        database.eventDao().updateEvent(event1);
+        Log.e("Tiwari@",eventList1.toString());
+
+
+
+    }
+    private void insertEvent(Event friend) {
+        database.eventDao().insertEvent(friend);
+        Log.e("Print hua",friend.getName().toString());
+
+    }
     @Override
     public void onDestroy() {
         Log.d(tag, "Destroying View …");
@@ -433,9 +501,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
 
+
         public void setClickListener(ClickListener clickListener) {
             this.clickListener=clickListener;
         }
+
 
         private class ViewHolder {
             public Button btn_cell;

@@ -16,7 +16,6 @@ public interface EventDao {
     @Insert
     void insertEvent(Event event);
 
-
     @Insert
     void insertEvent(List<Event>events);
 

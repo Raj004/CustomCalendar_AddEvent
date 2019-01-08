@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.rajshekhar.calendarwithevents_sql.database.Event;
+import com.example.rajshekhar.calendarwithevents_sql.database.EventDB;
 
 import java.util.List;
 
@@ -26,11 +27,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private Activity activity;
     int mLastPostion =0;
     private RemoveClickListner mListner;
+    private EventDB db;
 
-    public MyAdapter(MainActivity mainActivity, List<Event> events, RemoveClickListner listner) {
+    public MyAdapter(MainActivity mainActivity, List<Event> events, EventDB database, RemoveClickListner listner) {
         this.events=events;
         this.activity=mainActivity;
         mListner=listner;
+        db=database;
     }
 
 
@@ -121,13 +124,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             });
         }
 
-        public void setItemDetails(Event event,final  int position){
+        public void setItemDetails(final Event event, final  int position){
             name1.setText(event.getName());
             date1.setText(event.getDate());
 
             imageView.setOnClickListener(new AdapterView.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    db.eventDao().deleteEvent(event);
                     mListner.OnRemoveClick(position);
                 }
             });
